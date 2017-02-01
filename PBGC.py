@@ -1,3 +1,4 @@
+# coding=utf-8
 # PBGC.py
 # Push Button Get Candy
 # Created by Chris Hannemann on 2017-01-23
@@ -22,7 +23,7 @@ treatmentTarget = 90 # mg/dL or mmol/L, the target glucose to treat to
 
 # Get most recent glucose from NS
 currentGlucoseRequest = "api/v1/entries.json?count=1"
-currentGlucoseURL = nsurl + currentGlucoseRequest
+currentGlucoseURL = nsURL + currentGlucoseRequest
 currentGlucoseResponse = urllib.request.urlopen(currentGlucoseURL).read().decode('utf-8')
 currentGlucoseData = json.loads(currentGlucoseResponse)
 currentGlucose = currentGlucoseData[0]["sgv"]
