@@ -6,3 +6,4 @@ CSF = ISF / carbRatio # mg/dL or mmol/L per gram of carbohydrate
 carbsPerSkittle = 0.88 # grams of carbohydrate per Skittle
 lowGlucoseThreshold = 70 # mg/dL or mmol/L, below which the user requires Skittles
 treatmentTarget = 90 # mg/dL or mmol/L, the target glucose to treat to
+maxSkittles = 10 # maximum Skittles to deliver on a button press; don't want a ridiculous calculation to deliver some crazy amount

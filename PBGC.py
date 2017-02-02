@@ -50,7 +50,7 @@ print("                  predicted at " + predictionStartTime.astimezone().strft
 #  2. Eventual glucose is low <- what is being done in this example
 #  3. Near-term predicted glucose is low (30 min to 120 min, for example)
 if eventualGlucose <= lowGlucoseThreshold:
-    nSkittles = round((treatmentTarget - eventualGlucose) / CSF / carbsPerSkittle)
+    nSkittles = min(round((treatmentTarget - eventualGlucose) / CSF / carbsPerSkittle), maxSkittles)
 else:
     nSkittles = 0
 
