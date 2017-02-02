@@ -21,7 +21,7 @@ currentGlucoseResponse = urllib.request.urlopen(currentGlucoseURL).read().decode
 currentGlucoseData = json.loads(currentGlucoseResponse)
 currentGlucose = currentGlucoseData[0]["sgv"]
 currentGlucoseTime = dateutil.parser.parse(currentGlucoseData[0]["dateString"])
-print("Current Glucose = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 
 # Calculate staleness of the data ...
 ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
@@ -73,8 +73,8 @@ except:
     predictionEndTime = predictionStartTime + datetime.timedelta(minutes=(5*(len(eventualGlucoseData[1]["loop"]["predicted"]["values"])-5)))
 # Or just hard-code it, for testing
 # eventualGlucose = 70
-print("Eventual Glucose = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-print("                  predicted at " + predictionStartTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+print("... predicted at " + predictionStartTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 
 # Calculate the number of Skittles to deliver
 # this could be done in many ways:
