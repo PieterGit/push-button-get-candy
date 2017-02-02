@@ -9,6 +9,8 @@ import dateutil.parser
 import datetime
 from dateutil.tz import tzlocal
 from PBGC_config import *
+from pivotpi import *
+from time import sleep
 
 # Listen for the trigger!
 
@@ -87,7 +89,23 @@ else:
 # Turn the motor! Deliver the goods!
 # https://www.dexterindustries.com/pivotpi-tutorials-documentation/pivotpi-program-the-servo-controller-for-the-raspberry-pi/program-the-raspberry-pi-servo-controller-in-python/
 # https://github.com/DexterInd/PivotPi/tree/master/Software/Python
-print("PB→GC delivers " + str(nSkittles) + " Skittles!")
+skittle_pivot = PivotPi()
+# Make sure the LED corresponding to the particular servo is off
+# For the code below, we've attached the servo to the first port
+skittle_pivot.led(SERVO_1,0) 
+for skittle in range(0,nSkittles):	
+    # Turn on the LED for each Skittle
+    skittle_pivot.led(SERVO_1,100)
+    # Alternate rotating to 0 deg and 175 deg (this particular servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg)
+    skittle_pivot.angle(SERVO_1,skittle%2*175)
+    print("Skittle #: " + str(skittle+1))
+    sleep(.5)
+    # Turn the LED off
+    skittle_pivot.led(SERVO_1,0)
+    sleep(.5)
+print("PB→GC delivered " + str(nSkittles) + " Skittles!")
+# Return to a neutral state so that it is ready to deliver next batch
+skittle_pivot.angle(SERVO_1,90)
 
 # Confirm the Skittles were delivered; locally, temporarily adjust the predicted value
 # Depending on the hardware, you could use an encoder to check that Skittles actually went down the chute, for example
