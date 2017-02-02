@@ -8,7 +8,7 @@ import json
 import dateutil.parser
 import datetime
 from dateutil.tz import tzlocal
-import PBGC_config
+from PBGC_config import *
 
 # Listen for the trigger!
 
@@ -24,6 +24,36 @@ print("Current Glucose = " + str(currentGlucose) + " " + glucoseUnit + " at " + 
 # Calculate staleness of the data ...
 ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
 print("                  {} seconds ago".format(ageCurrentGlucose))
+
+# Get most recent glucose from Dexcom Share
+# Code adapted from the Share to Nightscout bridge, via @bewest and @shanselman
+# https://github.com/bewest/share2nightscout-bridge
+# Login and get a Dexcom Share session ID
+# ... need to only do this once and then refresh the sessionID as necessary
+dexLoginURL = "https://share1.dexcom.com/ShareWebServices/Services/General/LoginPublisherAccountByName"
+dexLoginPayload = "{\n\t\"User-Agent\":\"Dexcom Share/3.0.2.11 CFNetwork/711.2.23 Darwin/14.0.0\",\n\t\"applicationId\":\"d89443d2-327c-4a6f-89e5-496bbb0317db\",\n\t\"accountName\":\""+dexUsername+"\",\n\t\"password\":\""+dexPassword+"\"\n}"
+dexLoginHeaders = {
+    'content-type': "application/json",
+    'accept': "application/json",
+    }
+dexLoginResponse = requests.request("POST", dexLoginURL, data=dexLoginPayload, headers=dexLoginHeaders)
+sessionID = json.loads(dexLoginResponse.text)
+# print(sessionID)
+# Use the session ID to retrieve the latest glucose record
+dexGlucoseURL = "https://share1.dexcom.com/ShareWebServices/Services/Publisher/ReadPublisherLatestGlucoseValues"
+dexGlucoseQueryString = {"sessionID":sessionID,"minutes":"1440","maxCount":"1"}
+dexGlucoseHeaders = {
+    'content-type': "application/json",
+    'accept': "application/json",
+    }
+dexGlucoseResponse = requests.request("POST", dexGlucoseURL, headers=dexGlucoseHeaders, params=dexGlucoseQueryString)
+dexGlucoseResponseJSON = json.loads(dexGlucoseResponse.text)
+# print(json.dumps(dexGlucoseResponseJSON, indent=2, sort_keys=False))
+dexGlucose = dexGlucoseResponseJSON[0]["Value"]
+dexGlucoseEpochString = dexGlucoseResponseJSON[0]["ST"]
+dexGlucoseEpoch = int(dexGlucoseEpochString[dexGlucoseEpochString.find("(")+1:dexGlucoseEpochString.find(")")])/1e3
+dexGlucoseTimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dexGlucoseEpoch))
+print("Current Glucose (Share) = " + str(dexGlucose) + " " + glucoseUnit + " at " + time.strftime("%-I:%M:%S %p on %A, %B %d, %Y",time.localtime(dexGlucoseEpoch)))
 
 # Get eventual glucose from Loop via NS
 eventualGlucoseRequest = "api/v1/devicestatus.json"
