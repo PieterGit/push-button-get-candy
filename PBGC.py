@@ -1,3 +1,4 @@
+# coding=utf-8
 # PBGC.py
 # Push Button Get Candy
 # Created by Chris Hannemann on 2017-01-23
@@ -6,6 +7,7 @@ import urllib.request
 import json
 import dateutil.parser
 import datetime
+from dateutil.tz import tzlocal
 
 # Set user parameters
 # Perhaps this would be better done in a config file ...
@@ -22,12 +24,16 @@ treatmentTarget = 90 # mg/dL or mmol/L, the target glucose to treat to
 
 # Get most recent glucose from NS
 currentGlucoseRequest = "api/v1/entries.json?count=1"
-currentGlucoseURL = nsurl + currentGlucoseRequest
+currentGlucoseURL = nsURL + currentGlucoseRequest
 currentGlucoseResponse = urllib.request.urlopen(currentGlucoseURL).read().decode('utf-8')
 currentGlucoseData = json.loads(currentGlucoseResponse)
 currentGlucose = currentGlucoseData[0]["sgv"]
 currentGlucoseTime = dateutil.parser.parse(currentGlucoseData[0]["dateString"])
 print("Current Glucose = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+
+# Calculate staleness of the data ...
+ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
+print("                  {} seconds ago".format(ageCurrentGlucose))
 
 # Get eventual glucose from Loop via NS
 eventualGlucoseRequest = "api/v1/devicestatus.json"
@@ -47,11 +53,6 @@ except:
 # eventualGlucose = 70
 print("Eventual Glucose = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 print("                  predicted at " + predictionStartTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-
-# Calculate staleness of the data ...
-# The below returns an error about being zone-unaware, so it needs some fixing to work
-# ageCurrentGlucose = datetime.datetime.now() - currentGlucoseTime
-# print(ageCurrentGlucose)
 
 # Calculate the number of Skittles to deliver
 # this could be done in many ways:
