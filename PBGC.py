@@ -127,9 +127,9 @@ def skittleWiggle(nSkittles):
 
 def main():
 	# Listen for the trigger; when it goes:
-	currentGlucoseDex = getDexGlucose()
-	currentGlucoseNS = getNSGlucose()
-	eventualGlucoseLoop = getLoopPrediction()
+	currentGlucoseDex = getGlucoseDex()
+	currentGlucoseNS = getGlucoseNS()
+	eventualGlucoseLoop = getPredictionLoop()
 	nSkittles = calculateSkittles(eventualGlucoseLoop)
 	skittleWiggle(nSkittles)
 
