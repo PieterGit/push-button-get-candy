@@ -9,6 +9,7 @@ import json
 import time
 import dateutil.parser
 import datetime
+import re
 from dateutil.tz import tzlocal
 from PBGC_config import *
 from pivotpi import *
@@ -41,13 +42,18 @@ def getGlucoseDex():
 	# Login and get a Dexcom Share session ID
 	# ... need to only do this once and then refresh the sessionID as necessary
 	dexLoginURL = "https://share1.dexcom.com/ShareWebServices/Services/General/LoginPublisherAccountByName"
-	dexLoginPayload = "{\n\t\"User-Agent\":\"Dexcom Share/3.0.2.11 CFNetwork/711.2.23 Darwin/14.0.0\",\n\t\"applicationId\":\"d89443d2-327c-4a6f-89e5-496bbb0317db\",\n\t\"accountName\":\""+dexUsername+"\",\n\t\"password\":\""+dexPassword+"\"\n}"
+	dexLoginPayload = {
+            "User-Agent": "Dexcom Share/3.0.2.11 CFNetwork/711.2.23 Darwin/14.0.0",
+            "applicationId": "d89443d2-327c-4a6f-89e5-496bbb0317db",
+            "accountName": dexUsername,
+            "password": dexPassword,
+        }
 	dexLoginHeaders = {
 	    'content-type': "application/json",
 	    'accept': "application/json",
 	    }
-	dexLoginResponse = requests.request("POST", dexLoginURL, data=dexLoginPayload, headers=dexLoginHeaders)
-	sessionID = json.loads(dexLoginResponse.text)
+	dexLoginResponse = requests.post(dexLoginURL, json=dexLoginPayload, headers=dexLoginHeaders)
+	sessionID = dexLoginResponse.json()
 	# print(sessionID)
 	# Use the session ID to retrieve the latest glucose record
 	dexGlucoseURL = "https://share1.dexcom.com/ShareWebServices/Services/Publisher/ReadPublisherLatestGlucoseValues"
@@ -56,12 +62,12 @@ def getGlucoseDex():
 	    'content-type': "application/json",
 	    'accept': "application/json",
 	    }
-	dexGlucoseResponse = requests.request("POST", dexGlucoseURL, headers=dexGlucoseHeaders, params=dexGlucoseQueryString)
-	dexGlucoseResponseJSON = json.loads(dexGlucoseResponse.text)
+	dexGlucoseResponse = requests.post(dexGlucoseURL, headers=dexGlucoseHeaders, params=dexGlucoseQueryString)
+	dexGlucoseResponseJSON = dexGlucoseResponse.json()
 	# print(json.dumps(dexGlucoseResponseJSON, indent=2, sort_keys=False))
 	dexGlucose = dexGlucoseResponseJSON[0]["Value"]
 	dexGlucoseEpochString = dexGlucoseResponseJSON[0]["ST"]
-	dexGlucoseEpoch = int(dexGlucoseEpochString[dexGlucoseEpochString.find("(")+1:dexGlucoseEpochString.find(")")])/1e3
+	dexGlucoseEpoch = int(re.match('/Date\((\d+)\)/', dexGlucoseEpochString).group(1))/1e3
 	dexGlucoseTimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dexGlucoseEpoch))
 	print("Current Glucose (Share) = " + str(dexGlucose) + " " + glucoseUnit + " at " + time.strftime("%-I:%M:%S %p on %A, %B %d, %Y",time.localtime(dexGlucoseEpoch)))
 	return dexGlucose
