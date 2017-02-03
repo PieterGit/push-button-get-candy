@@ -3,8 +3,10 @@
 # Push Button Get Candy
 # Created by Chris Hannemann on 2017-01-23
 
-import urllib.request
+import urllib
+import requests
 import json
+import time
 import dateutil.parser
 import datetime
 from dateutil.tz import tzlocal
@@ -16,11 +18,13 @@ def getGlucoseNS():
 # Get most recent glucose from NS
 	currentGlucoseRequest = "api/v1/entries.json?count=1"
 	currentGlucoseURL = nsURL + currentGlucoseRequest
-	currentGlucoseResponse = urllib.request.urlopen(currentGlucoseURL).read().decode('utf-8')
+	currentGlucoseResponse = urllib.urlopen(currentGlucoseURL).read().decode('utf-8')
 	currentGlucoseData = json.loads(currentGlucoseResponse)
 	currentGlucose = currentGlucoseData[0]["sgv"]
 	currentGlucoseTime = dateutil.parser.parse(currentGlucoseData[0]["dateString"])
-	print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	#print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+
 	# Calculate staleness of the data ...
 	ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
 	print("                  {} seconds ago".format(ageCurrentGlucose))
@@ -64,7 +68,7 @@ def getPredictionLoop():
 	# Get eventual glucose from Loop via NS
 	eventualGlucoseRequest = "api/v1/devicestatus.json"
 	eventualGlucoseURL = nsURL + eventualGlucoseRequest
-	eventualGlucoseResponse = urllib.request.urlopen(eventualGlucoseURL).read().decode('utf-8')
+	eventualGlucoseResponse = urllib.urlopen(eventualGlucoseURL).read().decode('utf-8')
 	eventualGlucoseData = json.loads(eventualGlucoseResponse)
 	# I'm unsure how to better accomplish what is happening below; the correct device entry may not be the 0th or 1st entry in the returned array ... need to search for it?
 	try:
@@ -77,8 +81,8 @@ def getPredictionLoop():
 	    predictionEndTime = predictionStartTime + datetime.timedelta(minutes=(5*(len(eventualGlucoseData[1]["loop"]["predicted"]["values"])-5)))
 	# Or just hard-code it, for testing
 	# eventualGlucose = 70
-	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-	print("... predicted at " + predictionStartTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("... predicted at " + predictionStartTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	return eventualGlucose
 
 
@@ -89,7 +93,7 @@ def calculateSkittles(glucose):
 	#  2. Eventual glucose is low <- what is being done in this example
 	#  3. Near-term predicted glucose is low (30 min to 120 min, for example)
 	if glucose <= lowGlucoseThreshold:
-	    nSkittles = min(round((treatmentTarget - glucose) / CSF / carbsPerSkittle), maxSkittles)
+	    nSkittles = min(int(round((treatmentTarget - glucose) / CSF / carbsPerSkittle)), maxSkittles)
 	else:
 	    nSkittles = 0
 	return nSkittles
