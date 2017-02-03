@@ -27,12 +27,10 @@ def getGlucoseNS():
 	currentGlucoseData = json.loads(currentGlucoseResponse)
 	currentGlucose = currentGlucoseData[0]["sgv"]
 	currentGlucoseTime = dateutil.parser.parse(currentGlucoseData[0]["dateString"])
-	#print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone().strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-	print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-
+	print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	# Calculate staleness of the data ...
 	ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
-	print("                  {} seconds ago".format(ageCurrentGlucose))
+	print("   ... {} seconds ago".format(ageCurrentGlucose))
 	return currentGlucose
 
 
@@ -86,8 +84,8 @@ def getPredictionLoop():
 	    predictionEndTime = predictionStartTime + datetime.timedelta(minutes=(5*(len(eventualGlucoseData[1]["loop"]["predicted"]["values"])-5)))
 	# Or just hard-code it, for testing
 	# eventualGlucose = 70
-	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-	print("... predicted at " + predictionStartTime.strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("   ... predicted at " + predictionStartTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	return eventualGlucose
 
 
@@ -155,7 +153,7 @@ def main():
 			# Iterate over the number of Skittles to deliver       
 			for sNum in range(0,nSkittles):	
 				skittleWiggle(sNum)
-			print("PB→GC delivered " + str(nSkittles) + " Skittles!")
+			print("PBGC delivered " + str(nSkittles) + " Skittles!")
 	        # Return to a neutral state so that it is ready to deliver next batch
 	        skittle_pivot.angle(SERVO_1,90)
         
