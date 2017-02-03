@@ -13,6 +13,11 @@ from dateutil.tz import tzlocal
 from PBGC_config import *
 from pivotpi import *
 from time import sleep
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+skittle_pivot = PivotPi()
 
 def getGlucoseNS():
 # Get most recent glucose from NS
@@ -103,23 +108,33 @@ def skittleWiggle(nSkittles):
 	# Turn the motor! Deliver the goods!
 	# https://www.dexterindustries.com/pivotpi-tutorials-documentation/pivotpi-program-the-servo-controller-for-the-raspberry-pi/program-the-raspberry-pi-servo-controller-in-python/
 	# https://github.com/DexterInd/PivotPi/tree/master/Software/Python
-	skittle_pivot = PivotPi()
+
 	# Make sure the LED corresponding to the particular servo is off
 	# For the code below, we've attached the servo to the first port
 	skittle_pivot.led(SERVO_1,0) 
-	for skittle in range(0,nSkittles):	
+	for sNum in range(0,nSkittles):	
 	    # Turn on the LED for each Skittle
 	    skittle_pivot.led(SERVO_1,100)
-	    # Alternate rotating to 0 deg and 175 deg (this particular servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg)
-	    skittle_pivot.angle(SERVO_1,skittle%2*175)
-	    print("Skittle #: " + str(skittle+1))
+	    # Rotate from 0 deg to 175 deg, stopping at 135 deg and 45 deg in a wiggle pattern: 0 - 135 - 45 - 175 (drop Skittle)
+	    # Note: servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg
+	    # Because of dual Skittle slots in platter, rotation order needs to reverse after each Skittle (hence the modulo operator)
+	    skittle_pivot.angle(SERVO_1,45+sNum%2*90)
+	    # print(str(45+sNum%2*90))
+	    sleep(.3)
+	    skittle_pivot.angle(SERVO_1,135-sNum%2*90)
+	    # print(str(135-sNum%2*90))
+	    sleep(.3)    
+	    skittle_pivot.angle(SERVO_1,sNum%2*175)
+	    # print(str(sNum%2*175))
+	    print("Skittle #: " + str(sNum+1))
 	    sleep(.5)
 	    # Turn the LED off
 	    skittle_pivot.led(SERVO_1,0)
-	    sleep(.5)
+	    sleep(.5)	    
 	print("PB→GC delivered " + str(nSkittles) + " Skittles!")
 	# Return to a neutral state so that it is ready to deliver next batch
 	skittle_pivot.angle(SERVO_1,90)
+
 
 # Other functions to be written:
 
@@ -130,7 +145,7 @@ def skittleWiggle(nSkittles):
 	# Tell (Nightscout? Loop? Another nutrition app?) that carbs were consumed!
 
 def main():
-	# Listen for the trigger; when it goes:
+	# Listen for the trigger when it goes:
 	currentGlucoseDex = getGlucoseDex()
 	currentGlucoseNS = getGlucoseNS()
 	eventualGlucoseLoop = getPredictionLoop()
