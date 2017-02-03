@@ -101,39 +101,32 @@ def calculateSkittles(glucose):
 	    nSkittles = min(int(round((treatmentTarget - glucose) / CSF / carbsPerSkittle)), maxSkittles)
 	else:
 	    nSkittles = 0
+	print("PBGC calculates that " + str(nSkittles) + " should be delivered.")
 	return nSkittles
 
 
-def skittleWiggle(nSkittles):
+def skittleWiggle(sNum):
 	# Turn the motor! Deliver the goods!
 	# https://www.dexterindustries.com/pivotpi-tutorials-documentation/pivotpi-program-the-servo-controller-for-the-raspberry-pi/program-the-raspberry-pi-servo-controller-in-python/
 	# https://github.com/DexterInd/PivotPi/tree/master/Software/Python
-
-	# Make sure the LED corresponding to the particular servo is off
-	# For the code below, we've attached the servo to the first port
-	skittle_pivot.led(SERVO_1,0) 
-	for sNum in range(0,nSkittles):	
-	    # Turn on the LED for each Skittle
-	    skittle_pivot.led(SERVO_1,100)
-	    # Rotate from 0 deg to 175 deg, stopping at 135 deg and 45 deg in a wiggle pattern: 0 - 135 - 45 - 175 (drop Skittle)
-	    # Note: servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg
-	    # Because of dual Skittle slots in platter, rotation order needs to reverse after each Skittle (hence the modulo operator)
-	    skittle_pivot.angle(SERVO_1,45+sNum%2*90)
-	    # print(str(45+sNum%2*90))
-	    sleep(.3)
-	    skittle_pivot.angle(SERVO_1,135-sNum%2*90)
-	    # print(str(135-sNum%2*90))
-	    sleep(.3)    
-	    skittle_pivot.angle(SERVO_1,sNum%2*175)
-	    # print(str(sNum%2*175))
-	    print("Skittle #: " + str(sNum+1))
-	    sleep(.5)
-	    # Turn the LED off
-	    skittle_pivot.led(SERVO_1,0)
-	    sleep(.5)	    
-	print("PB→GC delivered " + str(nSkittles) + " Skittles!")
-	# Return to a neutral state so that it is ready to deliver next batch
-	skittle_pivot.angle(SERVO_1,90)
+    # Turn on the LED for each Skittle
+    skittle_pivot.led(SERVO_1,100)
+    # Rotate from 0 deg to 175 deg, stopping at 135 deg and 45 deg in a wiggle pattern: 0 - 135 - 45 - 175 (drop Skittle)
+    # Note: servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg
+    # Because of dual Skittle slots in platter, rotation order needs to reverse after each Skittle (hence the modulo operator)
+    skittle_pivot.angle(SERVO_1,45+sNum%2*90)
+    # print(str(45+sNum%2*90))
+    sleep(.3)
+    skittle_pivot.angle(SERVO_1,135-sNum%2*90)
+    # print(str(135-sNum%2*90))
+    sleep(.3)    
+    skittle_pivot.angle(SERVO_1,sNum%2*175)
+    # print(str(sNum%2*175))
+    print("Skittle #: " + str(sNum+1))
+    sleep(.5)
+    # Turn the LED off
+    skittle_pivot.led(SERVO_1,0)
+    sleep(.5)	    
 
 
 # Other functions to be written:
@@ -145,12 +138,27 @@ def skittleWiggle(nSkittles):
 	# Tell (Nightscout? Loop? Another nutrition app?) that carbs were consumed!
 
 def main():
-	# Listen for the trigger when it goes:
-	currentGlucoseDex = getGlucoseDex()
-	currentGlucoseNS = getGlucoseNS()
-	eventualGlucoseLoop = getPredictionLoop()
-	nSkittles = calculateSkittles(eventualGlucoseLoop)
-	skittleWiggle(nSkittles)
+	# Listen for the trigger
+	while True:
+		input_state = GPIO.input(18)
+		if input_state == False:
+			# Acknowledge button press
+			print("Button Pressed! P. B. G. C. GO! GO! GO!")
+			# Calculate the number of Skittles to deliver
+			currentGlucoseDex = getGlucoseDex()
+			currentGlucoseNS = getGlucoseNS()
+			eventualGlucoseLoop = getPredictionLoop()
+			nSkittles = calculateSkittles(eventualGlucoseLoop)       
+			# Make sure the LED corresponding to the particular servo is off
+			# For the code below, we've attached the servo to the first port
+			skittle_pivot.led(SERVO_1,0) 
+			# Iterate over the number of Skittles to deliver       
+			for sNum in range(0,nSkittles):	
+				skittleWiggle(sNum)
+			print("PB→GC delivered " + str(nSkittles) + " Skittles!")
+	        # Return to a neutral state so that it is ready to deliver next batch
+	        skittle_pivot.angle(SERVO_1,90)
+        
 
 if __name__ == "__main__":
 	main()
