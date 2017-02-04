@@ -24,6 +24,7 @@ GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(25, GPIO.OUT)
 skittle_pivot = PivotPi()
 
+
 def getGlucoseNS():
 # Get most recent glucose from NS
 	currentGlucoseRequest = "api/v1/entries.json?count=1"
@@ -58,7 +59,6 @@ def getGlucoseDex():
 	    }
 	dexLoginResponse = requests.post(dexLoginURL, json=dexLoginPayload, headers=dexLoginHeaders)
 	sessionID = dexLoginResponse.json()
-	# print(sessionID)
 	# Use the session ID to retrieve the latest glucose record
 	dexGlucoseURL = "https://share1.dexcom.com/ShareWebServices/Services/Publisher/ReadPublisherLatestGlucoseValues"
 	dexGlucoseQueryString = {"sessionID":sessionID,"minutes":"1440","maxCount":"1"}
@@ -68,7 +68,6 @@ def getGlucoseDex():
 	    }
 	dexGlucoseResponse = requests.post(dexGlucoseURL, headers=dexGlucoseHeaders, params=dexGlucoseQueryString)
 	dexGlucoseResponseJSON = dexGlucoseResponse.json()
-	# print(json.dumps(dexGlucoseResponseJSON, indent=2, sort_keys=False))
 	dexGlucose = dexGlucoseResponseJSON[0]["Value"]
 	dexGlucoseEpochString = dexGlucoseResponseJSON[0]["ST"]
 	dexGlucoseEpoch = int(re.match('/Date\((\d+)\)/', dexGlucoseEpochString).group(1))/1e3
@@ -92,8 +91,6 @@ def getPredictionLoop():
 	    eventualGlucose = eventualGlucoseData[1]["loop"]["predicted"]["values"][-1]
 	    predictionStartTime = dateutil.parser.parse(eventualGlucoseData[1]["loop"]["predicted"]["startDate"])
 	    predictionEndTime = predictionStartTime + datetime.timedelta(minutes=(5*(len(eventualGlucoseData[1]["loop"]["predicted"]["values"])-5)))
-	# Or just hard-code it, for testing
-	# eventualGlucose = 70
 	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	print("   ... predicted at " + predictionStartTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	return eventualGlucose
@@ -123,13 +120,10 @@ def skittleWiggle(sNum):
     # Note: servo appears to be out of calibration; a set point of 175 deg seems to result in 180 deg
     # Because of dual Skittle slots in platter, rotation order needs to reverse after each Skittle (hence the modulo operator)
     skittle_pivot.angle(SERVO_1,45+sNum%2*90)
-    # print(str(45+sNum%2*90))
     sleep(.3)
     skittle_pivot.angle(SERVO_1,135-sNum%2*90)
-    # print(str(135-sNum%2*90))
     sleep(.3)    
     skittle_pivot.angle(SERVO_1,sNum%2*175)
-    # print(str(sNum%2*175))
     print("Skittle #: " + str(sNum+1))
     sleep(.5)
     # Turn the LED off
@@ -144,6 +138,7 @@ def skittleWiggle(sNum):
 	# To prevent repeated delivery, the carb value of the delivered Skittles can be accounted for in future calculations, at least in the near-term
 
 	# Tell (Nightscout? Loop? Another nutrition app?) that carbs were consumed!
+
 
 def main():
 	# Set timing for checking on Skittle availability
