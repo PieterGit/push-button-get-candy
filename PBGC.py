@@ -17,7 +17,11 @@ from time import sleep
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+# GPIO pin 18 for the button (momentary switch)
 GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO pin 25 for the indicator LED
+GPIO.setup(25, GPIO.OUT)
 skittle_pivot = PivotPi()
 
 def getGlucoseNS():
@@ -105,7 +109,7 @@ def calculateSkittles(glucose):
 	    nSkittles = min(int(round((treatmentTarget - glucose) / CSF / carbsPerSkittle)), maxSkittles)
 	else:
 	    nSkittles = 0
-	print("PBGC calculates that " + str(nSkittles) + " should be delivered.")
+	print("PBGC calculates that " + str(nSkittles) + " Skittles should be delivered.")
 	return nSkittles
 
 
@@ -142,12 +146,28 @@ def skittleWiggle(sNum):
 	# Tell (Nightscout? Loop? Another nutrition app?) that carbs were consumed!
 
 def main():
-	# Listen for the trigger
+	# Set timing for checking on Skittle availability
+	checkTime = time.time() + 60
 	while True:
-		input_state = GPIO.input(18)
+		input_state = GPIO.input(18)		
+		if time.time() > checkTime:
+			try:
+				eventualGlucoseLoop = getPredictionLoop()
+				nSkittles = calculateSkittles(eventualGlucoseLoop)
+			except:
+				pass
+			if nSkittles > 0:
+				# Turn on LED to indicate Skittles are available
+				GPIO.output(25,GPIO.HIGH)
+			else:
+				# Turn off LED to indicate Skittles aren't available
+				GPIO.output(25,GPIO.LOW)
+			# Set next time to check
+			checkTime = time.time() + 60
+		# Listen for the trigger
 		if input_state == False:
 			# Acknowledge button press
-			print("Button Pressed! P. B. G. C. GO! GO! GO!")
+			print("\nButton Pressed! P. B. G. C. GO! GO! GO!")
 			# Calculate the number of Skittles to deliver
 			currentGlucoseDex = getGlucoseDex()
 			currentGlucoseNS = getGlucoseNS()
@@ -160,9 +180,11 @@ def main():
 			for sNum in range(0,nSkittles):	
 				skittleWiggle(sNum)
 			print("PBGC delivered " + str(nSkittles) + " Skittles!")
-	        # Return to a neutral state so that it is ready to deliver next batch
-	        skittle_pivot.angle(SERVO_1,90)
+			# Return to a neutral state so that it is ready to deliver next batch
+			skittle_pivot.angle(SERVO_1,90)
+	        # Turn off LED to indicate Skittles aren't available
+			GPIO.output(25,GPIO.LOW)
+	        
         
-
 if __name__ == "__main__":
 	main()
