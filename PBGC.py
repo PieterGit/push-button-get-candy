@@ -33,10 +33,10 @@ def getGlucoseNS():
 	currentGlucoseData = json.loads(currentGlucoseResponse)
 	currentGlucose = currentGlucoseData[0]["sgv"]
 	currentGlucoseTime = dateutil.parser.parse(currentGlucoseData[0]["dateString"])
-	print("Current Glucose (Nightscout) = " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("Current Glucose (Nightscout): " + str(currentGlucose) + " " + glucoseUnit + " at " + currentGlucoseTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	# Calculate staleness of the data ...
 	ageCurrentGlucose = round((datetime.datetime.now().replace(tzinfo=tzlocal()) - currentGlucoseTime).total_seconds())
-	print("   ... {} seconds ago".format(ageCurrentGlucose))
+	print("                              ... {} seconds ago".format(ageCurrentGlucose))
 	return currentGlucose
 
 
@@ -72,7 +72,7 @@ def getGlucoseDex():
 	dexGlucoseEpochString = dexGlucoseResponseJSON[0]["ST"]
 	dexGlucoseEpoch = int(re.match('/Date\((\d+)\)/', dexGlucoseEpochString).group(1))/1e3
 	dexGlucoseTimestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(dexGlucoseEpoch))
-	print("Current Glucose (Share) = " + str(dexGlucose) + " " + glucoseUnit + " at " + time.strftime("%-I:%M:%S %p on %A, %B %d, %Y",time.localtime(dexGlucoseEpoch)))
+	print("Current Glucose (Share):      " + str(dexGlucose) + " " + glucoseUnit + " at " + time.strftime("%-I:%M:%S %p on %A, %B %d, %Y",time.localtime(dexGlucoseEpoch)))
 	return dexGlucose
 
 
@@ -91,8 +91,8 @@ def getPredictionLoop():
 	    eventualGlucose = eventualGlucoseData[1]["loop"]["predicted"]["values"][-1]
 	    predictionStartTime = dateutil.parser.parse(eventualGlucoseData[1]["loop"]["predicted"]["startDate"])
 	    predictionEndTime = predictionStartTime + datetime.timedelta(minutes=(5*(len(eventualGlucoseData[1]["loop"]["predicted"]["values"])-5)))
-	print("Eventual Glucose (Loop) = " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
-	print("   ... predicted at " + predictionStartTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("Eventual Glucose (Loop):      " + str(eventualGlucose) + " " + glucoseUnit + " at " + predictionEndTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
+	print("                              ... predicted at " + predictionStartTime.astimezone(tzlocal()).strftime("%-I:%M:%S %p on %A, %B %d, %Y"))
 	return eventualGlucose
 
 
