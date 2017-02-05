@@ -103,6 +103,7 @@ def calculateSkittles(glucose):
 	#  2. Eventual glucose is low <- what is being done in this example
 	#  3. Near-term predicted glucose is low (30 min to 120 min, for example)
 	if glucose <= lowGlucoseThreshold:
+		# use the minimum of the calculated number of Skittles and the maxSkittles parameter
 	    nSkittles = min(int(round((treatmentTarget - glucose) / CSF / carbsPerSkittle)), maxSkittles)
 	else:
 	    nSkittles = 0
@@ -132,7 +133,13 @@ def skittleWiggle(sNum):
 
 
 # Other functions to be written:
-
+	
+	# Get OpenAPS predictions from Nightscout in a similar fashion to the getPredictionLoop() function
+	
+	# Acquire config information from Nightscout profile as an alternative option to hardcoding
+	
+	# Enable schedule-based targets and user parameters
+	
 	# Confirm the Skittles were delivered; locally, temporarily adjust the predicted value
 	# Depending on the hardware, you could use an encoder to check that Skittles actually went down the chute, for example
 	# To prevent repeated delivery, the carb value of the delivered Skittles can be accounted for in future calculations, at least in the near-term
@@ -144,7 +151,8 @@ def main():
 	# Set timing for checking on Skittle availability
 	checkTime = time.time() + 60
 	while True:
-		input_state = GPIO.input(18)		
+		input_state = GPIO.input(18)
+		# See if it is time to do the periodic check	
 		if time.time() > checkTime:
 			try:
 				eventualGlucoseLoop = getPredictionLoop()
@@ -159,7 +167,7 @@ def main():
 				GPIO.output(25,GPIO.LOW)
 			# Set next time to check
 			checkTime = time.time() + 60
-		# Listen for the trigger
+		# Listen for the button press
 		if input_state == False:
 			# Acknowledge button press
 			print("\nButton Pressed! P. B. G. C. GO! GO! GO!")
@@ -176,6 +184,7 @@ def main():
 				for sNum in range(0,nSkittles):	
 					skittleWiggle(sNum)
 				print("PBGC delivered " + str(nSkittles) + " Skittle(s)!")
+			# If Skittles aren't warranted, check to see if Oprah Mode is enabled
 			elif oprahMode:
 				print("Well, just this once ... ")
 				# Deliver a single Skittle
