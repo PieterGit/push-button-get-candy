@@ -106,7 +106,7 @@ def calculateSkittles(glucose):
 	    nSkittles = min(int(round((treatmentTarget - glucose) / CSF / carbsPerSkittle)), maxSkittles)
 	else:
 	    nSkittles = 0
-	print("PBGC calculates that " + str(nSkittles) + " Skittles should be delivered.")
+	print("PBGC calculates that " + str(nSkittles) + " Skittle(s) should be delivered.")
 	return nSkittles
 
 
@@ -171,10 +171,22 @@ def main():
 			# Make sure the LED corresponding to the particular servo is off
 			# For the code below, we've attached the servo to the first port
 			skittle_pivot.led(SERVO_1,0) 
-			# Iterate over the number of Skittles to deliver       
-			for sNum in range(0,nSkittles):	
-				skittleWiggle(sNum)
-			print("PBGC delivered " + str(nSkittles) + " Skittles!")
+			# If Skittles are warranted, iterate over the number of Skittles to deliver       
+			if nSkittles > 0:
+				for sNum in range(0,nSkittles):	
+					skittleWiggle(sNum)
+				print("PBGC delivered " + str(nSkittles) + " Skittle(s)!")
+			elif oprahMode:
+				print("Well, just this once ... ")
+				# Deliver a single Skittle
+				skittleWiggle(0)
+				# Blink the LED to indicate that it was due to Oprah Mode
+				for blink in range(0,3):
+					GPIO.output(25,GPIO.HIGH)
+					sleep(.2)
+					GPIO.output(25,GPIO.LOW)
+					sleep(.2)				
+				print("PBGC delivered 1 Skittle!")
 			# Return to a neutral state so that it is ready to deliver next batch
 			skittle_pivot.angle(SERVO_1,90)
 	        # Turn off LED to indicate Skittles aren't available
