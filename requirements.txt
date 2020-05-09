@@ -1,2 +1,3 @@
-python-dateutil==2.6.0
-requests==2.13.0
+requests>=2.23.0
+python-dateutil>=2.8.1
+rpi-backlight>=2.1.0
