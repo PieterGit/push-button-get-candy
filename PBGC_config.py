@@ -1,7 +1,8 @@
 nsURL = "https://MyNightscoutURL.herokuapp.com/" # or perhaps like "https://MyNightscoutURL.azurewebsites.net/"
+nsToken="subjectname-hash"
 dexUsername = "MyDexUsername" # replace with your username
 dexPassword = "MyDexPassword" #replace with your password
-glucoseUnit = "mg/dL" # selected unit
+glucoseUnit = "mg/dL" # selected unit mg/dL or mmmol/L
 carbRatio = 12 # grams of carbohydrate per unit of fast-acting insulin
 ISF = 40 # mg/dL or mmol/L per unit fast-acting insulin
 CSF = ISF / carbRatio # mg/dL or mmol/L per gram of carbohydrate
