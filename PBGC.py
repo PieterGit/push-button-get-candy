@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # coding=utf-8
 # PBGC.py
 # Push Button Get Candy
@@ -14,7 +15,8 @@ import re
 from dateutil.tz import tzlocal
 from PBGC_config import *
 from time import sleep
-from rpi_backlight import backlight
+import os
+#from rpi_backlight import backlight
 
 def convertGlucose(glucoseMgDl):
    if glucoseUnit[:4]=='mmol': 
@@ -107,14 +109,9 @@ def main():
 				currentGlucoseNS = getGlucoseNS()
 				eventualGlucoseLoop = getPredictionLoop()
 				# Set the backlight on if currentGlucoseNS or eventualGlucoseLoop is below lowGlucoseThreshold. Otherwise turn off backlight
-				enableScreen = (currentGlucoseNS < lowGlucoseThreshold) || (eventualGlucoseLoop < lowGlucoseThreshold )
-				backLightOn=backlight.power
-				if (enableScreen && !backLightOn)
-					backlight.power=True
-					#xscreensaver-command -deactivate
-				elif (!enableScreen && backLightOn)
-					backlight.power=False
-
+				enableScreen = (currentGlucoseNS < lowGlucoseThreshold) or (eventualGlucoseLoop < lowGlucoseThreshold )
+				if (enableScreen):
+					os.system("xscreensaver-command -deactivate")
 				#currentGlucoseDex = getGlucoseDex()
 			except:
 				pass
